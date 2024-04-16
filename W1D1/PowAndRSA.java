@@ -49,6 +49,7 @@ public class PowAndRSA {
         //私钥签名
         byte[] bytes = data.getBytes();
         Signature sig = Signature.getInstance("SHA256withRSA");
+
         sig.initSign(privateKey);
         sig.update(bytes);
         byte[] signature = sig.sign();
