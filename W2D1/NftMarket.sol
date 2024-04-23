@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+import {IERC20} from './TokenBank.sol';
+import {IERC721} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721.sol";
+
+interface IERC721Receiver {
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) 
+    external returns (bytes4);
+}
+
+contract NftMarket is IERC721Receiver{
+
+    IERC20 public immutable token;
+
+    IERC721 public immutable nft;
+
+    //nftid->价格
+    mapping(uint256=>uint256) public prices;
+
+    //nftid->卖家address
+    mapping(uint256=>address) public listing;
+
+    constructor(address _token, address _nft){
+        token = IERC20(_token);
+        nft = IERC721(_nft);
+    }
+
+    //用户需要先approve，再调用此接口, nft将被转移给market合约
+    function list(uint256 tokenId, uint256 price) public{
+        require(nft.ownerOf(tokenId) == msg.sender,"not owner");
+        nft.safeTransferFrom(msg.sender, address(this), tokenId);
+        prices[tokenId] = price;
+        listing[tokenId] = msg.sender;
+    }
+
+    function buyNFT(uint256 tokenId, uint256 amount) public{
+        require(nft.ownerOf(tokenId) == address(this), "not owner");
+        require(listing[tokenId]!= address(0), "not list");
+        require(amount >= prices[tokenId], "amount less than price");
+        token.transferFrom(msg.sender, listing[tokenId], prices[tokenId]);
+        nft.safeTransferFrom(address(this), msg.sender, tokenId);
+    }
+
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) 
+        external returns (bytes4){
+        return this.onERC721Received.selector;
+    }
+
+}
