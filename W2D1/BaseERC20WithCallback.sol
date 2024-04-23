@@ -10,12 +10,20 @@ contract BaseERC20WithCallback is BaseERC20{
     function transferCallback(address _to, uint256 _value) public returns (bool success) {
         bool r = super.transfer(_to, _value);
         if(isContract(_to)){
-            _to.call(abi.encodeWithSignature("tokensReceived(address,_value)", msg.sender, _value));
+            _to.call(abi.encodeWithSignature("tokensReceived(address,uint256)", msg.sender, _value));
         }
         return r;
     }
 
 
+    //用户调用此方法，一步直接实现NftMarket的购买
+    function transferCallback(address _to, uint256 _value, uint256 _tokenId) public returns (bool success) {
+        bool r = super.transfer(_to, _value);
+        if(isContract(_to)){
+            _to.call(abi.encodeWithSignature("tokensReceived(address,uint256,uint256)", msg.sender, _value, _tokenId));
+        }
+        return r;
+    }
 
     // copy from openzepplin
     function isContract(address account) internal view returns (bool) {

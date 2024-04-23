@@ -33,17 +33,34 @@ contract NftMarket is IERC721Receiver{
         listing[tokenId] = msg.sender;
     }
 
+    //用户购买
     function buyNFT(uint256 tokenId, uint256 amount) public{
         require(nft.ownerOf(tokenId) == address(this), "not owner");
         require(listing[tokenId]!= address(0), "not list");
         require(amount >= prices[tokenId], "amount less than price");
         token.transferFrom(msg.sender, listing[tokenId], prices[tokenId]);
         nft.safeTransferFrom(address(this), msg.sender, tokenId);
+        delete listing[tokenId];
+        delete prices[tokenId];
+    }
+
+    //ERC20回调购买
+    function tokensReceived(address sender, uint256 value, uint256 tokenId) public{
+        //校验，必须从ERC20合约回调过来
+        require(msg.sender == address(token), "no auth");
+
+        require(nft.ownerOf(tokenId) == address(this), "not owner");
+        require(listing[tokenId]!= address(0), "not list");
+        require(value >= prices[tokenId], "amount less than price");
+        token.transferFrom(address(this), listing[tokenId], prices[tokenId]);
+        nft.safeTransferFrom(address(this), sender, tokenId);
+
+        delete listing[tokenId];
+        delete prices[tokenId];
     }
 
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) 
         external returns (bytes4){
         return this.onERC721Received.selector;
     }
-
 }
