@@ -6,13 +6,24 @@ import './Bank.sol';
 
 contract Ownable{
 
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner{
+        require(msg.sender == owner, "not owner");
+        _;
+    }
+
     event Received(address from, address to, uint amount);
 
     receive() external payable{
         emit Received(msg.sender, address(this), msg.value);
     }
 
-    function withdraw(address payable bank) public{
+    function withdraw(address payable bank) onlyOwner public{
         BigBank(bank).withdraw();
     }
 
