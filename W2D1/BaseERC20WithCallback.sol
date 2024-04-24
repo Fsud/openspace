@@ -20,7 +20,8 @@ contract BaseERC20WithCallback is BaseERC20{
     function transferCallback(address _to, uint256 _value, uint256 _tokenId) public returns (bool success) {
         bool r = super.transfer(_to, _value);
         if(isContract(_to)){
-            _to.call(abi.encodeWithSignature("tokensReceived(address,uint256,uint256)", msg.sender, _value, _tokenId));
+            bytes memory data = abi.encode(_tokenId);
+            _to.call(abi.encodeWithSignature("tokensReceived(address,uint256,bytes)", msg.sender, _value, data));
         }
         return r;
     }

@@ -8,7 +8,11 @@ interface IERC721Receiver {
     external returns (bytes4);
 }
 
-contract NftMarket is IERC721Receiver{
+interface TokenRecipient {
+    function tokensReceived(address sender, uint256 value, bytes memory data) external returns (bool);
+}
+
+contract NftMarket is IERC721Receiver, TokenRecipient{
 
     IERC20 public immutable token;
 
@@ -45,18 +49,19 @@ contract NftMarket is IERC721Receiver{
     }
 
     //ERC20回调购买
-    function tokensReceived(address sender, uint256 value, uint256 tokenId) public{
+    function tokensReceived(address sender, uint256 value, bytes memory data) external returns (bool){ 
         //校验，必须从ERC20合约回调过来
         require(msg.sender == address(token), "no auth");
+        (uint256 tokenId) = abi.decode(data, (uint256));
 
         require(nft.ownerOf(tokenId) == address(this), "not owner");
         require(listing[tokenId]!= address(0), "not list");
         require(value >= prices[tokenId], "amount less than price");
         token.transferFrom(address(this), listing[tokenId], prices[tokenId]);
         nft.safeTransferFrom(address(this), sender, tokenId);
-
         delete listing[tokenId];
         delete prices[tokenId];
+        return true;
     }
 
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) 
