@@ -6,21 +6,11 @@ import './BaseERC20.sol';
 contract BaseERC20WithCallback is BaseERC20{
 
 
-    //用户调用此方法，一步直接实现TokenBank的存款
-    function transferCallback(address _to, uint256 _value) public returns (bool success) {
-        bool r = super.transfer(_to, _value);
-        if(isContract(_to)){
-            _to.call(abi.encodeWithSignature("tokensReceived(address,uint256)", msg.sender, _value));
-        }
-        return r;
-    }
-
-
+    //bytes memory data = abi.encode(_tokenId);
     //用户调用此方法，一步直接实现NftMarket的购买
-    function transferCallback(address _to, uint256 _value, uint256 _tokenId) public returns (bool success) {
+    function transferCallback(address _to, uint256 _value, bytes memory data) public returns (bool success) {
         bool r = super.transfer(_to, _value);
         if(isContract(_to)){
-            bytes memory data = abi.encode(_tokenId);
             _to.call(abi.encodeWithSignature("tokensReceived(address,uint256,bytes)", msg.sender, _value, data));
         }
         return r;
