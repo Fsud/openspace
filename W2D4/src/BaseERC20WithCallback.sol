@@ -2,6 +2,9 @@
 pragma solidity ^0.8.0;
 import './BaseERC20.sol';
 
+interface TokenRecipient {
+    function tokensReceived(address sender, uint256 value, bytes memory data) external returns (bool);
+}
 
 contract BaseERC20WithCallback is BaseERC20{
 
@@ -11,7 +14,7 @@ contract BaseERC20WithCallback is BaseERC20{
     function transferCallback(address _to, uint256 _value, bytes memory data) public returns (bool success) {
         bool r = super.transfer(_to, _value);
         if(isContract(_to)){
-            _to.call(abi.encodeWithSignature("tokensReceived(address,uint256,bytes)", msg.sender, _value, data));
+            TokenRecipient(_to).tokensReceived(msg.sender, _value, data);
         }
         return r;
     }

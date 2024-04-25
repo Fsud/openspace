@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import {IERC20} from './TokenBank.sol';
-import {IERC721} from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/IERC721.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 interface IERC721Receiver {
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) 
@@ -57,7 +57,7 @@ contract NftMarket is IERC721Receiver, TokenRecipient{
         require(nft.ownerOf(tokenId) == address(this), "not owner");
         require(listing[tokenId]!= address(0), "not list");
         require(value >= prices[tokenId], "amount less than price");
-        token.transferFrom(address(this), listing[tokenId], prices[tokenId]);
+        token.transfer(listing[tokenId], prices[tokenId]);
         nft.safeTransferFrom(address(this), sender, tokenId);
         delete listing[tokenId];
         delete prices[tokenId];
@@ -67,5 +67,13 @@ contract NftMarket is IERC721Receiver, TokenRecipient{
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) 
         external returns (bytes4){
         return this.onERC721Received.selector;
+    }
+
+    function price(uint256 tokenId) public view returns(uint256){
+        return prices[tokenId];
+    }
+
+    function lister(uint256 tokenId) public view returns(address){
+        return listing[tokenId];
     }
 }
