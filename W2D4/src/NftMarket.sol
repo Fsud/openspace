@@ -30,10 +30,10 @@ contract NftMarket is IERC721Receiver, TokenRecipient{
     }
 
     //用户需要先approve，再调用此接口, nft将被转移给market合约
-    function list(uint256 tokenId, uint256 price) public{
+    function list(uint256 tokenId, uint256 _price) public{
         require(nft.ownerOf(tokenId) == msg.sender,"not owner");
         nft.safeTransferFrom(msg.sender, address(this), tokenId);
-        prices[tokenId] = price;
+        prices[tokenId] = _price;
         listing[tokenId] = msg.sender;
     }
 

@@ -7,6 +7,10 @@ contract TokenBank {
 
     mapping(address => uint256) public balances;
 
+    event Deposit(address indexed user, uint256 value);
+
+    event Withdraw(address indexed user, uint256 value);
+
     constructor(address _token){
         token = IERC20(_token);
     }
@@ -15,12 +19,14 @@ contract TokenBank {
     function deposit(uint256 value) public{
         balances[msg.sender] += value;
         token.transferFrom(msg.sender,address(this),value);
+        emit Deposit(msg.sender, value);
     }
 
     function withdraw(uint256 value) public{
         require(balances[msg.sender] >= value, "value not enough");
         balances[msg.sender] -= value;
         token.transfer(msg.sender, value);
+        emit Withdraw(msg.sender, value);
     }
 
 

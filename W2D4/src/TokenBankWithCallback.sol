@@ -12,7 +12,7 @@ contract TokenBankWithCallback is TokenBank, TokenRecipient{
 
     event TokensReceived(address sender, uint256 value);
 
-    function tokensReceived(address sender, uint256 value, bytes memory data) external returns (bool){
+    function tokensReceived(address sender, uint256 value, bytes memory ) external returns (bool){
         emit TokensReceived(sender, value);
         //校验，必须从ERC20合约回调过来
         require(msg.sender == address(token), "no auth");
