@@ -12,9 +12,8 @@ contract BaseERC20WithCallbackTest is Test {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-
     function setUp() public {
-        baseERC20 = new BaseERC20WithCallback();
+        baseERC20 = new BaseERC20WithCallback("MyERC20", "MyERC20");
         tokenBank = new TokenBankWithCallback(address(baseERC20));
     }
 
@@ -55,7 +54,6 @@ contract BaseERC20WithCallbackTest is Test {
         vm.expectRevert("ERC20: transfer amount exceeds allowance");
         baseERC20.transferFrom(bob, alice, 100);
     }
-
 
     function test_TransferTooMuch() public {
         address bob = makeAddr("bob");
