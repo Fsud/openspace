@@ -79,8 +79,8 @@ contract ERC20CloneFactory{
         MiniERC20 token = MiniERC20(inscription.token);
         token.transfer(msg.sender, inscription.perMint);
         inscription.minted += inscription.perMint;
-        payable(inscription.owner).transfer(msg.value * fee / 100);
-        payable(admin).transfer(msg.value * (100 - fee) / 100);
+        payable(inscription.owner).transfer(msg.value * (100 - fee) / 100);
+        payable(admin).transfer(msg.value * fee / 100);
 
         emit Mint(tokenAddr, msg.sender);
     }

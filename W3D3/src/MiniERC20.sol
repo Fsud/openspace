@@ -27,6 +27,7 @@ contract MiniERC20{
         name = _name;
         symbol = _name;
         totalSupply = _totalSupply;
+        //克隆后，将所有“铭文”erc20全部分配给工厂合约
         balances[owner] = totalSupply;
         isBased = true;
     }

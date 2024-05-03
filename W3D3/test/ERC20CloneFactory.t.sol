@@ -29,6 +29,7 @@ contract ERC20CloneFactoryTest is Test {
         assertEq(inscription.symbol, "TEST1");
         assertEq(inscription.minted, 0);
         assertEq(inscription.owner, address(this));
+        assertEq(MiniERC20(copy).balanceOf(address(factory)), 1e22); //铭文erc20全部转移给工厂合约
         
         address copy2 = factory.deployInscription("TEST2", 1e22, 100 * 1e18, 0.1 ether);
         assertNotEq(copy, copy2);
@@ -46,10 +47,10 @@ contract ERC20CloneFactoryTest is Test {
         factory.mintInscription{value: 0.1 ether}(copy);
         Inscription memory inscription = factory.getInscription(copy);
         assertEq(inscription.minted, 100 * 1e18);
-        assertEq(MiniERC20(copy).balanceOf(bob), 100 * 1e18);
+        assertEq(MiniERC20(copy).balanceOf(bob), 100 * 1e18); //代币分配正确
 
-        assertEq(alice.balance, 0.005 ether);
-        assertEq(admin.balance, 0.095 ether);
+        assertEq(alice.balance, 0.095 ether); // token owner正确
+        assertEq(admin.balance, 0.005 ether); // 管理员正确
 
     }
 
