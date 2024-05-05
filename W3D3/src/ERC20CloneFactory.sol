@@ -2,6 +2,7 @@
 pragma solidity ^0.8.25;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {MiniERC20} from "./MiniERC20.sol";
 
 /**
@@ -32,6 +33,8 @@ contract ERC20CloneFactory{
     address payable public admin;
 
     uint8 fee;  //percentage of mintfee to admin
+
+    using Address for address payable;
 
     event Clone(address indexed sender, address token);
 
@@ -79,8 +82,10 @@ contract ERC20CloneFactory{
         MiniERC20 token = MiniERC20(inscription.token);
         token.transfer(msg.sender, inscription.perMint);
         inscription.minted += inscription.perMint;
-        payable(inscription.owner).transfer(msg.value * (100 - fee) / 100);
-        payable(admin).transfer(msg.value * fee / 100);
+
+        //防止gas不足
+        payable(inscription.owner).sendValue(msg.value * (100 - fee) / 100);
+        admin.sendValue(msg.value * fee / 100);
 
         emit Mint(tokenAddr, msg.sender);
     }
