@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.25;
 
-import {IERC20} from "./TokenBank.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {Nonces} from "@openzeppelin/contracts/utils/Nonces.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "./copy/IERC721Receiver.sol";
 
-interface IERC721Receiver {
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
-        external
-        returns (bytes4);
-}
+//与之前作业相比，去掉了构造函数
+contract NftMarketV1 is Initializable,IERC721Receiver {
+    IERC20 public token;
 
-contract NftMarket is Nonces, IERC721Receiver {
-    IERC20 public immutable token;
-
-    IERC721 public immutable nft;
+    IERC721 public nft;
 
     //nftid->价格
     mapping(uint256 => uint256) public prices;
@@ -29,7 +25,8 @@ contract NftMarket is Nonces, IERC721Receiver {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
-    constructor(address _token, address _nft) {
+
+    function initialize(address _token, address _nft) initializer public {
         token = IERC20(_token);
         nft = IERC721(_nft);
         admin = msg.sender;
@@ -54,33 +51,17 @@ contract NftMarket is Nonces, IERC721Receiver {
         delete prices[tokenId];
     }
 
-    function price(uint256 tokenId) public view returns (uint256) {
-        return prices[tokenId];
-    }
-
     function lister(uint256 tokenId) public view returns (address) {
         return listing[tokenId];
     }
 
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
-        external
-        returns (bytes4)
-    {
-        return this.onERC721Received.selector;
+    function marketVersion() virtual public pure returns (uint8){
+        return 1;
     }
 
-    function permitBuy(uint256 nonce, bytes calldata signature, uint256 tokenId, uint256 amount) public {
-        _useCheckedNonce(msg.sender, nonce);
-        //业务参数打包取hash
-        bytes32 hash = keccak256(abi.encodePacked(msg.sender, nonce));
-        hash = hash.toEthSignedMessageHash();
-        //使用hash还原签名，得到签名地址
-        address signAddr = hash.recover(signature);
-        //签名地址正确，是有效签名
-        require(signAddr == admin, "error signiture");
-
-        _useNonce(msg.sender);
-
-        buyNFT(tokenId, amount);
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data)
+        external returns (bytes4)
+    {
+        return this.onERC721Received.selector;
     }
 }
