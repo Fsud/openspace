@@ -1,66 +1,15 @@
-## Foundry
+## 编写一个可升级的 NFT Market 合约
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+### 透明代理测试
+OldTransparentProxy.t.sol //不使用 openzeppelin-upgrade工具的测试用例
+NewTransparentProxy.t.sol //使用 openzeppelin-upgrade工具
+![](./测试截图.png)
+//TransparentUpgradeableProxy.s.sol //部署脚本
 
-Foundry consists of:
+### 部署、开源
+![](./测试截图2.png)
+https://sepolia.etherscan.io/address/0xff07eA54B66De1774054Ce8B5a084A7943F2B532
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+### erc712测试
+forge test --mt permitList   
+![](./测试截图3.png)
