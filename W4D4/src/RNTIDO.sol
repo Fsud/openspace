@@ -22,7 +22,6 @@ contract RNTIDO {
     uint256 public tokenSaleAmount; //IDO 代币数量
 
     mapping(address => uint256) public balances;
-    address[] public investors;
 
     using Address for address payable;
 
