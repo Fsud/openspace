@@ -40,3 +40,6 @@
 [submodule "W4D5/lib/forge-std"]
 	path = W4D5/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "W5D2/lib/forge-std"]
+	path = W5D2/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
