@@ -14,14 +14,14 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
  */
 struct StakeInfo {
     uint128 userStake; //总质押的ETH数量
-    uint128 userRecordedRewardsPerToken; //上次用户记录的每个token的奖励。扩大了1e18倍
     uint128 accumulatedUserRewards; //用户累计的奖励
+    uint256 userRecordedRewardsPerToken; //上次用户记录的每个token的奖励。扩大了1e18倍
 }
 
 contract StakingPool is IStaking {
     mapping(address => StakeInfo) public stakes;
 
-    uint128 currentRewardsPerToken; //每个wei的ETH积累了多少token奖励。扩大了1e18倍
+    uint256 currentRewardsPerToken; //每个wei的ETH积累了多少token奖励。扩大了1e18倍
 
     uint128 startNumber = uint128(block.number);
 
@@ -52,13 +52,13 @@ contract StakingPool is IStaking {
             lastUpdateBlock = uint128(block.number);
             return;
         }
-        currentRewardsPerToken += (uint128(block.number) - lastUpdateBlock) * rate * 1e18 / totalStaked;
+        currentRewardsPerToken += (block.number - lastUpdateBlock) * rate * 1e18 / totalStaked;
         lastUpdateBlock = uint128(block.number);
         emit RewardUpdated(block.number, currentRewardsPerToken);
     }
 
     function _updateUserReward(StakeInfo storage stk) internal {
-        stk.accumulatedUserRewards += stk.userStake * (currentRewardsPerToken - stk.userRecordedRewardsPerToken) / 1e18;
+        stk.accumulatedUserRewards += stk.userStake * uint128(currentRewardsPerToken - stk.userRecordedRewardsPerToken) / 1e18;
         stk.userRecordedRewardsPerToken = currentRewardsPerToken;
         emit UserRewardUpdated(msg.sender, stk.accumulatedUserRewards, stk.userRecordedRewardsPerToken);
     }
