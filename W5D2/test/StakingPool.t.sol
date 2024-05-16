@@ -45,6 +45,7 @@ contract StakingPoolTest is Test {
         vm.startPrank(alice);
         stakingPool.unstake(1000);
         assertEq(stakingPool.balanceOf(address(alice)), 0);
+        assertEq(alice.balance, 1000);
     }
 
     function test_claim() public {

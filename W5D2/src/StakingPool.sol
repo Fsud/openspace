@@ -3,6 +3,7 @@ pragma solidity ^0.8.25;
 
 import {IToken, IStaking} from "./IToken.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * 编写 StakingPool 合约，实现 Stake 和 Unstake 方法，允许任何人质押ETH来赚钱 KK Token。
@@ -12,27 +13,27 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  *      userStake * (userRecordedRewardsPerToken - currentRewardsPerToken)
  */
 struct StakeInfo {
-    uint256 userStake; //总质押的ETH数量
-    uint256 accumulatedUserRewards; //用户累计的奖励
-    uint256 userRecordedRewardsPerToken; //上次用户记录的每个token的奖励
+    uint128 userStake; //总质押的ETH数量
+    uint128 userRecordedRewardsPerToken; //上次用户记录的每个token的奖励。扩大了1e18倍
+    uint128 accumulatedUserRewards; //用户累计的奖励
 }
 
 contract StakingPool is IStaking {
     mapping(address => StakeInfo) public stakes;
 
-    uint256 currentRewardsPerToken;
+    uint128 currentRewardsPerToken; //每个wei的ETH积累了多少token奖励。扩大了1e18倍
 
-    uint256 startNumber = block.number;
+    uint128 startNumber = uint128(block.number);
 
-    uint256 rate = 10 * 1e18;
+    uint128 rate = 10 * 1e18; //每个区块奖励的代币数量
 
-    uint256 totalStaked;
+    uint128 totalStaked; //总质押eth数量，单位是wei
 
     IToken kkToken;
 
     using SafeERC20 for IToken;
 
-    uint256 lastUpdateBlock = startNumber;
+    uint128 lastUpdateBlock = startNumber;
 
     event RewardUpdated(uint256 blockNumber, uint256 currentRewardsPerToken);
     event Claim(address indexed account, uint256 amount);
@@ -47,14 +48,17 @@ contract StakingPool is IStaking {
     }
 
     function _updateReward() internal {
-        if (totalStaked == 0) return;
-        currentRewardsPerToken += (block.number - lastUpdateBlock) * rate / totalStaked;
-        lastUpdateBlock = block.number;
+        if (totalStaked == 0) {
+            lastUpdateBlock = uint128(block.number);
+            return;
+        }
+        currentRewardsPerToken += (uint128(block.number) - lastUpdateBlock) * rate * 1e18 / totalStaked;
+        lastUpdateBlock = uint128(block.number);
         emit RewardUpdated(block.number, currentRewardsPerToken);
     }
 
     function _updateUserReward(StakeInfo storage stk) internal {
-        stk.accumulatedUserRewards += stk.userStake * (currentRewardsPerToken - stk.userRecordedRewardsPerToken);
+        stk.accumulatedUserRewards += stk.userStake * (currentRewardsPerToken - stk.userRecordedRewardsPerToken) / 1e18;
         stk.userRecordedRewardsPerToken = currentRewardsPerToken;
         emit UserRewardUpdated(msg.sender, stk.accumulatedUserRewards, stk.userRecordedRewardsPerToken);
     }
@@ -66,8 +70,8 @@ contract StakingPool is IStaking {
         _updateReward();
         StakeInfo storage stk = stakes[msg.sender];
         _updateUserReward(stk);
-        stk.userStake += msg.value;
-        totalStaked += msg.value;
+        stk.userStake += uint128(msg.value);
+        totalStaked += uint128(msg.value);
         emit Stake(msg.sender, msg.value);
     }
 
@@ -75,13 +79,14 @@ contract StakingPool is IStaking {
      * @dev 赎回质押的 ETH
      * @param amount 赎回数量
      */
-    function unstake(uint256 amount) external {
+    function unstake(uint128 amount) external {
         StakeInfo storage stk = stakes[msg.sender];
         require(stk.userStake >= amount, "insufficient balance");
         _updateReward();
         _updateUserReward(stk);
         stk.userStake -= amount;
         totalStaked -= amount;
+        Address.sendValue(payable(msg.sender), amount);
         emit Unstake(msg.sender, amount);
     }
 
@@ -93,8 +98,11 @@ contract StakingPool is IStaking {
         _updateReward();
         _updateUserReward(stk);
         uint256 reward = stk.accumulatedUserRewards;
-        kkToken.mint(msg.sender, reward);
+        if (reward == 0) {
+            return;
+        }
         stk.accumulatedUserRewards = 0;
+        kkToken.mint(msg.sender, reward);
         emit Claim(msg.sender, reward);
     }
 
@@ -114,9 +122,11 @@ contract StakingPool is IStaking {
      */
     function earned(address account) external view returns (uint256) {
         if (totalStaked == 0) return 0;
-        uint256 _currentRewardsPerToken = currentRewardsPerToken + (block.number - lastUpdateBlock) * rate / totalStaked;
+        uint256 _currentRewardsPerToken =
+            currentRewardsPerToken + (block.number - lastUpdateBlock) * rate * 1e18 / totalStaked;
 
         StakeInfo storage stk = stakes[account];
-        return stk.accumulatedUserRewards + stk.userStake * (_currentRewardsPerToken - stk.userRecordedRewardsPerToken);
+        return stk.accumulatedUserRewards
+            + stk.userStake * (_currentRewardsPerToken - stk.userRecordedRewardsPerToken) / 1e18;
     }
 }

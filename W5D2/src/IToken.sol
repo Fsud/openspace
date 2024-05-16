@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.25;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /**
  * @title KK Token
  */
+
 interface IToken is IERC20 {
     function mint(address to, uint256 amount) external;
 }
@@ -21,7 +23,7 @@ interface IStaking {
      * @dev 赎回质押的 ETH
      * @param amount 赎回数量
      */
-    function unstake(uint256 amount) external;
+    function unstake(uint128 amount) external;
 
     /**
      * @dev 领取 KK Token 收益
