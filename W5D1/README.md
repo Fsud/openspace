@@ -1,66 +1,10 @@
-## Foundry
+## 用Solidity从Uniswap中兑换ETH
+实现了 Mydex、MyLibrary 调用 factory 和 pair 进行 swap。
+添加、移除流动性的两个功能直接调用了 router，没有自己实现。
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+setUp 添加流动性、创建交易对
+test_buyETH() 使用代币购买ETH
+test_sellETH() 使用ETH购买代币
+test_removeLiquidity()  移除流动性
 
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+![](测试截图1.png)
